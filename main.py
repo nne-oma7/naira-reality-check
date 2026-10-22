@@ -1,10 +1,19 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 import requests
 
 app = FastAPI(title="Naira Reality Check API")
 
 # CoinGecko name -> Quidax symbol
-COINS = {"bitcoin": "btc", "ethereum": "eth", "tether": "usdt"}
+COINS = {
+    "bitcoin": "btc", "ethereum": "eth", "tether": "usdt",
+    "ripple": "xrp", "litecoin": "ltc", "tron": "trx", "dash": "dash",
+}
+
+
+@app.get("/")
+def home():
+    return FileResponse("index.html")
 
 
 @app.get("/check/{coin}")

@@ -42,7 +42,7 @@ Then it works out the **premium**, the percentage difference between the last tw
 
 ## Supported coins
 
-`bitcoin`, `ethereum`, `tether`
+`bitcoin`, `ethereum`, `tether`, `ripple`, `litecoin`, `tron`, `dash`
 
 ## Where the data comes from
 

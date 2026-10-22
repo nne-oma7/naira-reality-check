@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Naira Reality Check</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #fdf6ec; color: #3b2f2f;
+         margin: 0; display: flex; justify-content: center; padding: 24px; }
+  .box { max-width: 460px; width: 100%; }
+  h1 { margin-bottom: 4px; }
+  .sub { color: #7a6a5a; margin-top: 0; }
+  select, button { font-size: 16px; padding: 12px; border-radius: 10px;
+                   border: 1px solid #d9c7b0; width: 100%; margin-top: 10px; }
+  button { background: #3b2f2f; color: white; cursor: pointer; border: none; }
+  .card { background: white; border-radius: 14px; padding: 18px; margin-top: 18px;
+          box-shadow: 0 2px 8px rgba(0,0,0,.08); display: none; }
+  .row { display: flex; justify-content: space-between; padding: 6px 0; }
+  .big { font-size: 36px; font-weight: bold; margin: 8px 0; }
+  .above { color: #c2571a; }
+  .below { color: #2e7d32; }
+  .note { font-size: 13px; color: #7a6a5a; margin-top: 14px; }
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>🇳🇬 Naira Reality Check</h1>
+  <p class="sub">Is the naira price of your crypto actually fair?</p>
+
+  <select id="coin"></select>
+  <button id="go">Check the gap</button>
+
+  <div class="card" id="card">
+    <div class="big" id="premium"></div>
+    <div id="verdict"></div>
+    <div id="meaning" class="note"></div>
+    <hr>
+    <div class="row"><span>🌍 World price</span><b id="usd"></b></div>
+    <div class="row"><span>💱 Should be (₦)</span><b id="implied"></b></div>
+    <div class="row"><span>🏦 Quidax price (₦)</span><b id="quidax"></b></div>
+    <div class="note">The exchange rate used is a reference rate, so treat this as a signal, not a verdict.</div>
+    <div class="note" id="updated"></div>
+  </div>
+  <p id="error" class="note"></p>
+</div>
+
+<script>
+const fmt = n => Number(n).toLocaleString("en-NG", { maximumFractionDigits: 2 });
+const select = document.getElementById("coin");
+let timer;
+
+fetch("/coins").then(r => r.json()).then(list => {
+  select.innerHTML = list.map(c =>
+    `<option value="${c}">${c[0].toUpperCase() + c.slice(1)}</option>`).join("");
+});
+
+async function runCheck(auto) {
+  const card = document.getElementById("card");
+  const error = document.getElementById("error");
+  if (!auto) { error.textContent = "Checking..."; card.style.display = "none"; }
+
+  try {
+    const res = await fetch("/check/" + select.value);
+    if (!res.ok) throw new Error();
+    const d = await res.json();
+
+    const p = d.premium_percent;
+    const el = document.getElementById("premium");
+    el.textContent = (p > 0 ? "+" : "") + p + "%";
+    el.className = "big " + (p > 0 ? "above" : "below");
+
+    document.getElementById("verdict").textContent = d.verdict;
+    document.getElementById("usd").textContent = "$" + fmt(d.global_price_usd);
+    document.getElementById("implied").textContent = "₦" + fmt(d.global_implied_ngn);
+    document.getElementById("quidax").textContent = "₦" + fmt(d.quidax_ngn);
+
+    const a = Math.abs(p);
+    document.getElementById("meaning").textContent =
+      a < 1 ? "That's very close to the world price." :
+      a < 3 ? "A small gap. Pretty normal for a local market." :
+              "A noticeable gap. Worth comparing before you trade.";
+
+    document.getElementById("updated").textContent =
+      "Updates every 30 seconds. Last updated: " + new Date().toLocaleTimeString();
+    error.textContent = "";
+    card.style.display = "block";
+  } catch {
+    error.textContent = "Couldn't fetch the data right now. Please try again.";
+  }
+}
+
+document.getElementById("go").addEventListener("click", () => {
+  runCheck(false);
+  clearInterval(timer);
+  timer = setInterval(() => runCheck(true), 30000);
+});
+</script>
+</body>
+</html>
