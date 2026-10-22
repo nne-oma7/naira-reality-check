@@ -15,6 +15,10 @@ COINS = {
 def home():
     return FileResponse("index.html")
 
+@app.get("/coins")
+def coins():
+    return list(COINS)
+
 
 @app.get("/check/{coin}")
 def check(coin: str):
