@@ -1,99 +1,863 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Naira Reality Check</title>
-<style>
-  body { font-family: Arial, sans-serif; background: #fdf6ec; color: #3b2f2f;
-         margin: 0; display: flex; justify-content: center; padding: 24px; }
-  .box { max-width: 460px; width: 100%; }
-  h1 { margin-bottom: 4px; }
-  .sub { color: #7a6a5a; margin-top: 0; }
-  select, button { font-size: 16px; padding: 12px; border-radius: 10px;
-                   border: 1px solid #d9c7b0; width: 100%; margin-top: 10px; }
-  button { background: #3b2f2f; color: white; cursor: pointer; border: none; }
-  .card { background: white; border-radius: 14px; padding: 18px; margin-top: 18px;
-          box-shadow: 0 2px 8px rgba(0,0,0,.08); display: none; }
-  .row { display: flex; justify-content: space-between; padding: 6px 0; }
-  .big { font-size: 36px; font-weight: bold; margin: 8px 0; }
-  .above { color: #c2571a; }
-  .below { color: #2e7d32; }
-  .note { font-size: 13px; color: #7a6a5a; margin-top: 14px; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Compare global cryptocurrency prices with Quidax prices in Nigerian Naira.">
+  <title>Naira Reality Check 🇳🇬</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --background: #101713;
+      --panel: #1a231d;
+      --panel-light: #202c24;
+      --text: #f3f5f1;
+      --muted: #a4b0a7;
+      --lime: #b8f36b;
+      --border: #303d33;
+      --red: #ff8b8b;
+      --green: #b8f36b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 32px 18px;
+      background: var(--background);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.6;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 30px;
+    }
+
+    .eyebrow {
+      color: var(--lime);
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 8px 0;
+      font-size: clamp(30px, 5vw, 46px);
+      line-height: 1.15;
+    }
+
+    h1 span {
+      color: var(--lime);
+    }
+
+    .subtitle,
+    .muted {
+      color: var(--muted);
+    }
+
+    .subtitle {
+      max-width: 650px;
+      margin-top: 12px;
+    }
+
+    .section {
+      margin-top: 26px;
+    }
+
+    .section h2 {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .panel {
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--panel);
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: end;
+      gap: 12px;
+    }
+
+    .field {
+      flex: 1;
+      min-width: 180px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    select,
+    button {
+      width: 100%;
+      min-height: 46px;
+      border-radius: 9px;
+      font: inherit;
+    }
+
+    select {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      background: var(--panel-light);
+      color: var(--text);
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      background: var(--lime);
+      color: #152010;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      filter: brightness(1.05);
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.6;
+    }
+
+    .button-field {
+      flex: 0 0 170px;
+    }
+
+    #message {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    #message.error {
+      color: var(--red);
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .result-card {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--panel-light);
+      min-width: 0;
+    }
+
+    .result-card .label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .value {
+      margin-top: 8px;
+      font-size: clamp(20px, 3vw, 30px);
+      font-weight: bold;
+      overflow-wrap: anywhere;
+    }
+
+    .above {
+      color: var(--lime);
+    }
+
+    .below {
+      color: #8ed9ff;
+    }
+
+    .neutral {
+      color: var(--text);
+    }
+
+    .verdict {
+      margin-top: 18px;
+      padding: 16px;
+      border-left: 3px solid var(--lime);
+      border-radius: 7px;
+      background: var(--panel-light);
+    }
+
+    .verdict strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 18px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .stat {
+      padding: 15px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel-light);
+      min-width: 0;
+    }
+
+    .stat .label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .stat .value {
+      font-size: 19px;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 320px;
+      width: 100%;
+      margin-top: 12px;
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      white-space: nowrap;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      padding: 13px 12px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: normal;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    footer {
+      margin-top: 32px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 760px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .result-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .button-field {
+        flex: 1 1 100%;
+      }
+    }
+
+    @media (max-width: 420px) {
+      body {
+        padding: 22px 12px;
+      }
+
+      .panel {
+        padding: 15px;
+      }
+
+      .stats-grid {
+        gap: 8px;
+      }
+
+      .stat {
+        padding: 12px;
+      }
+    }
+  </style>
 </head>
+
 <body>
-<div class="box">
-  <h1>🇳🇬 Naira Reality Check</h1>
-  <p class="sub">Is the naira price of your crypto actually fair?</p>
+  <main class="container">
 
-  <select id="coin"></select>
-  <button id="go">Check the gap</button>
+    <header>
+      <div class="eyebrow">A Nigerian crypto price checker</div>
+      <h1>Naira <span>Reality Check</span> 🇳🇬</h1>
+      <p class="subtitle">
+        Is the Nigerian market price of your crypto close to its
+        global implied value? Compare reference prices and track
+        the difference over time.
+      </p>
+    </header>
 
-  <div class="card" id="card">
-    <div class="big" id="premium"></div>
-    <div id="verdict"></div>
-    <div id="meaning" class="note"></div>
-    <hr>
-    <div class="row"><span>🌍 World price</span><b id="usd"></b></div>
-    <div class="row"><span>💱 Should be (₦)</span><b id="implied"></b></div>
-    <div class="row"><span>🏦 Quidax price (₦)</span><b id="quidax"></b></div>
-    <div class="note">The exchange rate used is a reference rate, so treat this as a signal, not a verdict.</div>
-    <div class="note" id="updated"></div>
-  </div>
-  <p id="error" class="note"></p>
-</div>
+    <section class="section">
+      <div class="panel">
+        <div class="controls">
+          <div class="field">
+            <label for="coin">Choose a cryptocurrency</label>
+            <select id="coin">
+              <option value="">Loading coins...</option>
+            </select>
+          </div>
 
-<script>
-const fmt = n => Number(n).toLocaleString("en-NG", { maximumFractionDigits: 2 });
-const select = document.getElementById("coin");
-let timer;
+          <div class="button-field">
+            <button id="go" type="button">Check market</button>
+          </div>
+        </div>
 
-fetch("/coins").then(r => r.json()).then(list => {
-  select.innerHTML = list.map(c =>
-    `<option value="${c}">${c[0].toUpperCase() + c.slice(1)}</option>`).join("");
-});
+        <p id="message" role="status" aria-live="polite">
+          Connecting to the market...
+        </p>
+      </div>
+    </section>
 
-async function runCheck(auto) {
-  const card = document.getElementById("card");
-  const error = document.getElementById("error");
-  if (!auto) { error.textContent = "Checking..."; card.style.display = "none"; }
+    <section class="section">
+      <h2>Market comparison</h2>
 
-  try {
-    const res = await fetch("/check/" + select.value);
-    if (!res.ok) throw new Error();
-    const d = await res.json();
+      <div class="panel">
+        <div class="muted">Quidax price vs. global implied price</div>
 
-    const p = d.premium_percent;
-    const el = document.getElementById("premium");
-    el.textContent = (p > 0 ? "+" : "") + p + "%";
-    el.className = "big " + (p > 0 ? "above" : "below");
+        <div class="value neutral" id="premium">—</div>
 
-    document.getElementById("verdict").textContent = d.verdict;
-    document.getElementById("usd").textContent = "$" + fmt(d.global_price_usd);
-    document.getElementById("implied").textContent = "₦" + fmt(d.global_implied_ngn);
-    document.getElementById("quidax").textContent = "₦" + fmt(d.quidax_ngn);
+        <div class="muted" id="updated">Waiting for first check...</div>
 
-    const a = Math.abs(p);
-    document.getElementById("meaning").textContent =
-      a < 1 ? "That's very close to the world price." :
-      a < 3 ? "A small gap. Pretty normal for a local market." :
-              "A noticeable gap. Worth comparing before you trade.";
+        <div class="verdict">
+          <strong id="verdict">Waiting for market data</strong>
+          <span class="muted" id="meaning">
+            Choose a coin to compare prices.
+          </span>
+        </div>
 
-    document.getElementById("updated").textContent =
-      "Updates every 30 seconds. Last updated: " + new Date().toLocaleTimeString();
-    error.textContent = "";
-    card.style.display = "block";
-  } catch {
-    error.textContent = "Couldn't fetch the data right now. Please try again.";
-  }
-}
+        <div class="result-grid">
+          <div class="result-card">
+            <div class="label">Global price (USD)</div>
+            <div class="value" id="usd">—</div>
+          </div>
 
-document.getElementById("go").addEventListener("click", () => {
-  runCheck(false);
-  clearInterval(timer);
-  timer = setInterval(() => runCheck(true), 30000);
-});
-</script>
+          <div class="result-card">
+            <div class="label">Global implied price (NGN)</div>
+            <div class="value" id="implied">—</div>
+          </div>
+
+          <div class="result-card">
+            <div class="label">Quidax market price (NGN)</div>
+            <div class="value" id="quidax">—</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Market summary</h2>
+      <p class="muted">
+        Statistics calculated from the price checks saved in your database.
+      </p>
+
+      <div class="stats-grid">
+        <div class="stat">
+          <div class="label">Saved checks</div>
+          <div class="value" id="count">—</div>
+        </div>
+
+        <div class="stat">
+          <div class="label">Average premium</div>
+          <div class="value" id="average">—</div>
+        </div>
+
+        <div class="stat">
+          <div class="label">Highest premium</div>
+          <div class="value" id="highest">—</div>
+        </div>
+
+        <div class="stat">
+          <div class="label">Lowest premium</div>
+          <div class="value" id="lowest">—</div>
+        </div>
+
+        <div class="stat">
+          <div class="label">Overall trend</div>
+          <div class="value" id="trend">—</div>
+        </div>
+      </div>
+
+      <p class="muted" id="trendNote">
+        Your saved price history will appear here.
+      </p>
+    </section>
+
+    <section class="section">
+      <h2>Premium over time</h2>
+      <p class="muted">
+        Each point represents a saved market check. A positive premium
+        means Quidax is above the global implied reference price;
+        a negative premium means it is below.
+      </p>
+
+      <div class="panel">
+        <div class="chart-wrap">
+          <canvas
+            id="premiumChart"
+            role="img"
+            aria-label="Line chart showing the premium or discount over time">
+          </canvas>
+        </div>
+
+        <p class="muted" id="chartNote">
+          Waiting for saved price history...
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Recent price history</h2>
+      <p class="muted">
+        The ten most recent saved market checks for your selected coin.
+      </p>
+
+      <div class="panel table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date and time</th>
+              <th>Quidax (NGN)</th>
+              <th>Global implied (NGN)</th>
+              <th>Premium / discount</th>
+            </tr>
+          </thead>
+
+          <tbody id="history">
+            <tr>
+              <td colspan="4">Waiting for price history...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>
+      <p>
+        <strong>Important:</strong> These are reference-price comparisons,
+        not guaranteed trading opportunities. Actual prices can differ
+        because of liquidity, spreads, fees, and market conditions.
+        This tool is for educational purposes and is not financial advice.
+      </p>
+
+      <p>Built by Nneoma, learning software engineering one project at a time. 💚</p>
+    </footer>
+
+  </main>
+
+  <script>
+    const select = document.getElementById("coin");
+    const button = document.getElementById("go");
+    const message = document.getElementById("message");
+
+    let premiumChart = null;
+    let chartRequestInProgress = false;
+    let currentCheckInProgress = false;
+
+    const fmt = n =>
+      Number(n).toLocaleString("en-NG", {
+        maximumFractionDigits: 2
+      });
+
+    const money = (n, currency) =>
+      currency + fmt(n);
+
+    const percent = n =>
+      (n > 0 ? "+" : "") + fmt(n) + "%";
+
+    function showMessage(text, isError = false) {
+      message.textContent = text;
+      message.classList.toggle("error", isError);
+    }
+
+    async function api(path) {
+      const response = await fetch(path);
+
+      if (!response.ok) {
+        let detail = "Request failed.";
+
+        try {
+          const body = await response.json();
+          detail = body.detail || detail;
+        } catch {}
+
+        throw new Error(detail);
+      }
+
+      return response.json();
+    }
+
+    async function loadCoins() {
+      try {
+        const coins = await api("/coins");
+        select.replaceChildren();
+
+        for (const coin of coins) {
+          const option = document.createElement("option");
+          option.value = coin;
+          option.textContent =
+            coin.charAt(0).toUpperCase() + coin.slice(1);
+
+          select.appendChild(option);
+        }
+
+        if (coins.length > 0) {
+          await runCheck();
+        } else {
+          showMessage("No supported coins were returned.", true);
+        }
+      } catch (error) {
+        showMessage(
+          "Could not load coins: " + error.message,
+          true
+        );
+      }
+    }
+
+    async function loadSummary(coin) {
+      const data = await api(
+        "/summary/" + encodeURIComponent(coin)
+      );
+
+      document.getElementById("count").textContent =
+        data.snapshots_count;
+
+      if (data.snapshots_count === 0) {
+        for (const id of [
+          "average",
+          "highest",
+          "lowest",
+          "trend"
+        ]) {
+          document.getElementById(id).textContent = "—";
+        }
+
+        document.getElementById("trendNote").textContent =
+          data.message || "No saved snapshots yet.";
+
+        return;
+      }
+
+      document.getElementById("average").textContent =
+        percent(data.average_premium_percent);
+
+      document.getElementById("highest").textContent =
+        percent(data.highest_premium_percent);
+
+      document.getElementById("lowest").textContent =
+        percent(data.lowest_premium_percent);
+
+      document.getElementById("trend").textContent =
+        data.trend.replaceAll("_", " ");
+
+      document.getElementById("trendNote").textContent =
+        data.snapshots_count < 2
+          ? "Record another check to compare snapshots."
+          : "Trend compares the oldest and newest saved premiums, not every movement.";
+    }
+
+    async function loadHistory(coin) {
+      const data = await api(
+        "/history/" + encodeURIComponent(coin) + "?limit=10"
+      );
+
+      const tbody = document.getElementById("history");
+      tbody.replaceChildren();
+
+      if (data.history.length === 0) {
+        const row = tbody.insertRow();
+        const cell = row.insertCell();
+
+        cell.colSpan = 4;
+        cell.textContent = "No saved history yet.";
+
+        return;
+      }
+
+      for (const item of data.history) {
+        const row = tbody.insertRow();
+        const date = new Date(item.recorded_at);
+
+        const values = [
+          Number.isNaN(date.getTime())
+            ? item.recorded_at
+            : date.toLocaleString(),
+
+          money(item.quidax_ngn, "₦"),
+          money(item.global_implied_ngn, "₦"),
+          percent(item.premium_percent)
+        ];
+
+        for (const value of values) {
+          row.insertCell().textContent = value;
+        }
+      }
+    }
+
+    async function loadChart(coin) {
+      if (chartRequestInProgress) return;
+
+      chartRequestInProgress = true;
+
+      try {
+        const data = await api(
+          "/history/" + encodeURIComponent(coin) + "?limit=50"
+        );
+
+        // The API returns newest first.
+        // Reverse the records to show oldest first.
+        const history = [...data.history].reverse();
+
+        const labels = history.map(item => {
+          const date = new Date(item.recorded_at);
+
+          return Number.isNaN(date.getTime())
+            ? item.recorded_at
+            : date.toLocaleString();
+        });
+
+        const values = history.map(
+          item => item.premium_percent
+        );
+
+        const canvas = document.getElementById("premiumChart");
+
+        if (!premiumChart) {
+          premiumChart = new Chart(canvas, {
+            type: "line",
+
+            data: {
+              labels: labels,
+
+              datasets: [{
+                label: "Premium / discount (%)",
+                data: values,
+                borderColor: "#b8f36b",
+                backgroundColor: "rgba(184, 243, 107, 0.12)",
+                fill: true,
+                tension: 0.3,
+                pointRadius: 3,
+                pointHoverRadius: 6
+              }]
+            },
+
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+
+              animation: {
+                duration: 400
+              },
+
+              interaction: {
+                intersect: false,
+                mode: "index"
+              },
+
+              plugins: {
+                legend: {
+                  labels: {
+                    color: "#f3f5f1"
+                  }
+                },
+
+                tooltip: {
+                  callbacks: {
+                    label: context =>
+                      "Premium / discount: " +
+                      percent(context.parsed.y)
+                  }
+                }
+              },
+
+              scales: {
+                x: {
+                  ticks: {
+                    color: "#a4b0a7",
+                    maxTicksLimit: 6,
+                    maxRotation: 0
+                  },
+
+                  grid: {
+                    color: "rgba(164, 176, 167, 0.1)"
+                  }
+                },
+
+                y: {
+                  title: {
+                    display: true,
+                    text: "Premium / discount (%)",
+                    color: "#a4b0a7"
+                  },
+
+                  ticks: {
+                    color: "#a4b0a7",
+                    callback: value => value + "%"
+                  },
+
+                  grid: {
+                    color: "rgba(164, 176, 167, 0.1)"
+                  }
+                }
+              }
+            }
+          });
+        } else {
+          premiumChart.data.labels = labels;
+          premiumChart.data.datasets[0].data = values;
+          premiumChart.update();
+        }
+
+        document.getElementById("chartNote").textContent =
+          history.length === 0
+            ? "No saved price checks yet. Run a market check to start your chart."
+            : "Showing " + history.length + " saved price checks.";
+
+      } catch (error) {
+        document.getElementById("chartNote").textContent =
+          "Could not load chart history: " + error.message;
+      } finally {
+        chartRequestInProgress = false;
+      }
+    }
+
+    async function runCheck() {
+      if (!select.value || currentCheckInProgress) return;
+
+      currentCheckInProgress = true;
+      button.disabled = true;
+
+      showMessage("Fetching prices and updating your dashboard...");
+
+      try {
+        const coin = select.value;
+
+        const data = await api(
+          "/check/" + encodeURIComponent(coin)
+        );
+
+        const p = data.premium_percent;
+        const premium = document.getElementById("premium");
+
+        premium.textContent = percent(p);
+
+        premium.className =
+          "value premium " +
+          (p > 0 ? "above" : p < 0 ? "below" : "neutral");
+
+        document.getElementById("verdict").textContent =
+          data.verdict;
+
+        document.getElementById("meaning").textContent =
+          Math.abs(p) < 1
+            ? "The two reference prices are relatively close."
+            : Math.abs(p) < 3
+              ? "There is a modest difference between these prices."
+              : "There is a noticeable difference. Check spreads and fees before trading.";
+
+        document.getElementById("usd").textContent =
+          money(data.global_price_usd, "$");
+
+        document.getElementById("implied").textContent =
+          money(data.global_implied_ngn, "₦");
+
+        document.getElementById("quidax").textContent =
+          money(data.quidax_ngn, "₦");
+
+        document.getElementById("updated").textContent =
+          "Checked at " +
+          (data.recorded_at
+            ? new Date(data.recorded_at).toLocaleString()
+            : new Date().toLocaleString());
+
+        // Refresh the summary and history after saving a check.
+        await Promise.all([
+          loadSummary(coin),
+          loadHistory(coin),
+          loadChart(coin)
+        ]);
+
+        showMessage("Market check complete.");
+      } catch (error) {
+        showMessage(error.message, true);
+      } finally {
+        currentCheckInProgress = false;
+        button.disabled = false;
+      }
+    }
+
+    button.addEventListener("click", runCheck);
+
+    select.addEventListener("change", () => {
+      runCheck();
+    });
+
+    // Load the coins and perform the first market check.
+    loadCoins();
+
+    // Refresh displayed history and chart every 30 seconds.
+    // This does not itself save a new market snapshot.
+    setInterval(async () => {
+      if (!select.value || document.hidden) return;
+
+      const coin = select.value;
+
+      try {
+        await Promise.all([
+          loadSummary(coin),
+          loadHistory(coin),
+          loadChart(coin)
+        ]);
+      } catch (error) {
+        console.error("History refresh failed:", error);
+      }
+    }, 30000);
+
+    // Save a fresh market check every five minutes while the
+    // page is visible. The backend stores each successful check.
+    setInterval(() => {
+      if (
+        select.value &&
+        !currentCheckInProgress &&
+        !document.hidden
+      ) {
+        runCheck();
+      }
+    }, 300000);
+  </script>
 </body>
 </html>
