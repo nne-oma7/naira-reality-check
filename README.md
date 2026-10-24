@@ -4,11 +4,7 @@
 
 If you've ever tried to buy crypto in Nigeria, you know the feeling. You open a price checker, it says Bitcoin is a certain number of dollars, and then you open your exchange app and the naira price looks... different. Is that normal? Is it a fair price? Should you wait?
 
-
-
 Most price trackers speak in dollars. But most of us earn, save and spend in naira. So the number that really matters, "what am I paying compared to what the world is paying?", is the one nobody shows you.
-
-
 
 That gap felt like something worth building a tool for. This is my small attempt at it.
 
@@ -21,6 +17,22 @@ It's a small project with a simple idea: take the global price of a cryptocurren
 And because one price check only tells you what's happening at that moment, I also built a way to save those checks and track how the difference changes over time.
 
 Think of it as a little reality check for crypto prices in Nigeria. 💚
+
+---
+
+## 🚀 Try it live
+
+| What | Link |
+|---|---|
+| 📊 The dashboard | http://142.93.58.215:8002/ |
+| 🔌 The API (interactive docs) | http://142.93.58.215:8002/docs |
+
+**Take it for a spin:**
+1. Open the dashboard and pick a coin from the dropdown.
+2. Click **Check market** and see the global price, the global-implied naira price, the Quidax price and the gap between them.
+3. Scroll down for the summary, the chart and the recent history.
+
+The live demo is hosted on a small server and runs over plain `http://`. There's nothing private in it, since it only uses public price data, and a scheduled job also records a check for every supported coin every 15 minutes, so the chart has history even when nobody is looking.
 
 ---
 
@@ -57,6 +69,18 @@ Here's what the app does:
 * **Plots the history:** Displays saved observations on a line chart so you can see how the price difference changes over time.
 
 No complicated spreadsheet calculations required. Just a clearer way to look at the numbers.
+
+## 🔍 How it works, step by step (no engineering degree needed)
+
+Think of the app as a very careful assistant with three phone calls to make every time you press **Check market**:
+
+1. 📞 **Call one, CoinGecko:** "What's Bitcoin worth in US dollars right now?"
+2. 📞 **Call two, an exchange-rate service:** "How many naira is one US dollar today?"
+3. 📞 **Call three, Quidax:** "What's Bitcoin trading for in naira on your platform?"
+
+Then the assistant does the maths: dollars × the exchange rate gives the "global-implied" naira price, which is what Bitcoin *should* cost in naira if you simply converted the world price. Next it compares that with Quidax's real naira price, works out the gap as a percentage, and writes you a one-line verdict in plain English.
+
+Finally, it **writes the result in a notebook** (the database). Every check adds a line, so over time the notebook becomes a little history of the gap, and the chart is just that notebook drawn as a line.
 
 ## 🌍 What problem does it solve, and what makes it different?
 
@@ -102,7 +126,7 @@ Every successful market check is saved in a local database. The dashboard uses t
 
 The dashboard refreshes its displayed history periodically while it's open. It also attempts a new market check every five minutes while the page is visible.
 
-The app doesn't download a complete historical market feed, and it doesn't collect prices when the dashboard is closed. The chart shows the observations that the app has actually saved.
+The app doesn't download a complete historical market feed, and on its own it doesn't collect prices when the dashboard is closed (the live demo uses a scheduled job for that, see "How the live demo is hosted" below). The chart shows the observations that the app has actually saved.
 
 ## 🪙 Which cryptocurrencies can I check?
 
@@ -204,6 +228,10 @@ http://127.0.0.1:8000/docs
 
 The database is stored locally on your computer. Each person running the application creates and maintains their own local price history.
 
+## ☁️ How the live demo is hosted
+
+The live demo runs on a small Ubuntu server as a background service (gunicorn with a uvicorn worker, managed by `systemd`), so it keeps running when my laptop is closed and starts again by itself after a reboot. It has its own database and its own price history, separate from anything on my computer. A scheduled job (`cron`) checks all seven coins every 15 minutes so the chart fills up on its own.
+
 ## 🧠 What I learned while building this
 
 This project has helped me practise several parts of software engineering:
@@ -217,6 +245,7 @@ This project has helped me practise several parts of software engineering:
 * Using Chart.js to display saved observations visually.
 * Connecting the frontend to the backend and keeping the displayed information updated.
 * Thinking about what happens when an API fails, a coin isn't supported, or there isn't enough saved history to calculate a trend.
+* Putting an app on a real server and keeping it running.
 
 I'm still learning, so this project isn't the end of the journey. It's one of the ways I'm turning what I learn into something I can actually use and improve.
 
@@ -226,11 +255,13 @@ There are still things I'd like to explore:
 
 * Adding automated tests.
 * Improving how external API failures are handled.
+* Adding a short cache, so lots of visitors don't overload the price sources.
 * Supporting more cryptocurrencies.
 * Making the historical analysis more detailed.
 * Exploring more reliable ways to collect and store market observations.
+* Serving the demo over HTTPS.
 
-For now, I'm happy that a question I was curious about has become a working project with a backend, database, API endpoints, and a dashboard.
+For now, I'm happy that a question I was curious about has become a working project with a backend, database, API endpoints, a dashboard and a live link anyone can open.
 
 ## 🧰 Built with
 
@@ -243,6 +274,14 @@ For now, I'm happy that a question I was curious about has become a working proj
 * CSS
 * JavaScript
 * Chart.js
+
+## 📖 Tech words, translated
+
+* **Backend:** the part of the app that does the work behind the scenes.
+* **API:** a set of doors other software can knock on to ask the backend for things.
+* **Database:** the notebook where every price check is saved.
+* **Dashboard:** the screen you look at and click around on.
+* **Server:** a computer that stays switched on so everyone can reach the app.
 
 ---
 
